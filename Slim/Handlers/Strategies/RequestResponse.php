@@ -12,6 +12,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Interfaces\InvocationStrategyInterface;
 
+use MicroSlim\Controller\RoutableController;
+use Closure;
+
 /**
  * Default route callback strategy with route parameters as an array of arguments.
  */
@@ -36,6 +39,12 @@ class RequestResponse implements InvocationStrategyInterface
     ) {
         foreach ($routeArguments as $k => $v) {
             $request = $request->withAttribute($k, $v);
+        }
+
+        if (!$callable instanceof Closure && $callable[0] instanceof RoutableController) {
+            $controller = $callable[0];
+
+            $controller($request, $response, $routeArguments);
         }
 
         return call_user_func($callable, $request, $response, $routeArguments);
